@@ -65,6 +65,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -164,6 +167,29 @@ public class SimplePostTool {
    * @param args the params on the command line
    */
   public static void main(String[] args) {
+    System.setProperty("http.proxyUser", "hilman.muhammad14@mhs.if.its.ac.id");
+    System.setProperty("http.proxyPassword", "liverpoolfc");
+
+    // Java ignores http.proxyUser. Here come's the workaround.
+
+    Authenticator.setDefault(new Authenticator() {
+      @Override
+      protected PasswordAuthentication getPasswordAuthentication() {
+        if (getRequestorType() == RequestorType.PROXY) {
+          String prot = getRequestingProtocol().toLowerCase();
+          String host = System.getProperty(prot + ".proxyHost", "proxy.its.ac.id");
+          String port = System.getProperty(prot + ".proxyPort", "8080");
+          String user = System.getProperty(prot + ".proxyUser", "hilman.muhammad14@mhs.if.its.ac.id");
+          String password = System.getProperty(prot + ".proxyPassword", "liverpoolfc");
+          if (getRequestingHost().equalsIgnoreCase(host)) {
+            if (Integer.parseInt(port) == getRequestingPort()) {
+              return new PasswordAuthentication(user, password.toCharArray());
+            }
+          }
+        }
+        return null;
+      }
+    });
     info("SimplePostTool version " + VERSION_OF_THIS_TOOL);
     if (0 < args.length && ("-help".equals(args[0]) || "--help".equals(args[0]) || "-h".equals(args[0]))) {
       usage();
